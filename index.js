@@ -162,7 +162,7 @@ const getCopyFileParams = (tsbConfigPath) => {
   return copyfiles
 }
 
-const executeCopyFiles = (copyfilesParams) => {
+const executeCopyFiles = (copyfilesParams, tsbConfigPath) => {
   for (const params of copyfilesParams) {
     const copyCommand = `copyfiles ${params}`
     const cwd = path.dirname(tsbConfigPath)
@@ -203,5 +203,5 @@ const tsbConfigPaths = getTSBConfigPaths()
 for (const tsbConfigPath of tsbConfigPaths) {
   const copyfilesParams = getCopyFileParams(tsbConfigPath)
 
-  executeCopyFiles(copyfilesParams)
+  executeCopyFiles(copyfilesParams, tsbConfigPath)
 }
