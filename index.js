@@ -46,24 +46,28 @@ const getTSConfigJsonFromPath = (path) => {
   return tsconfigjson
 }
 
-const getReferencFromTSConfig = (tsconfigjson) => {
+const getReferencesFromTSConfig = (tsconfigJson, tsconfigPath) => {
   const references = new Set()
 
-  if (tsconfigjson && Array.isArray(tsconfigjson.references)) {
-    for (const reference of tsconfigjson.references) {
-      const refPath = reference.path
+  if (tsconfigJson && Array.isArray(tsconfigJson.references)) {
+    for (const reference of tsconfigJson.references) {
+      let refPath = reference.path
 
       if (!refPath) {
         console.error('No path found on tsconfig reference.')
         console.error('tsconfig:')
-        console.error(tsconfigjson)
+        console.error(tsconfigJson)
         shell.exit(1)
       }
 
-      const resolvedPath = path.resolve(refPath)
+      if (tsconfigPath) {
+        refPath = path.join(path.dirname(tsconfigPath), refPath)
+      } else {
+        refPath = path.resolve(refPath)
+      }
 
-      if (!references.has(resolvedPath)) {
-        references.add(resolvedPath)
+      if (!references.has(refPath)) {
+        references.add(refPath)
       }
     }
 
@@ -73,9 +77,9 @@ const getReferencFromTSConfig = (tsconfigjson) => {
   return []
 }
 
-const getReferences = (path = undefined, references = new Set()) => {
-  const tsconfigjson = getTSConfigJsonFromPath(path)
-  const newReferences = getReferencFromTSConfig(tsconfigjson)
+const getReferences = (tsconfigPath = undefined, references = new Set()) => {
+  const tsconfigJson = getTSConfigJsonFromPath(tsconfigPath)
+  const newReferences = getReferencesFromTSConfig(tsconfigJson, tsconfigPath)
 
   for (const newRef of newReferences) {
     if (!references.has(newRef)) {
