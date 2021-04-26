@@ -129,7 +129,7 @@ const getTSBConfigPaths = () => {
 
 const getCopyFileParams = (tsbConfigPath) => {
   // console.log("config found:", path)
-  const config = fs.readFileSync(tsbConfigPath)
+  const config = fs.readFileSync(tsbConfigPath, 'utf8')
 
   if (!config) {
     console.error(`${tsbConfigPath} could not be read.`)
@@ -192,7 +192,7 @@ const baseCommand = getBaseCommand()
 // 2. Run tsc command with provided args
 const [, , ...args] = process.argv
 const buildCommand = `${baseCommand} ${args.join(' ')}`
-result = shell.exec(buildCommand, { silent: true })
+const result = shell.exec(buildCommand, { silent: true })
 exitOnError(buildCommand, result, 'tsc compilation failed.')
 
 // 3. If --build is not included exit successfully (0)
