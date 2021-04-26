@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-const shell = require("shelljs")
-const path = require("path")
-const fs = require("fs")
+const shell = require('shelljs')
+const path = require('path')
+const fs = require('fs')
+const cp = require('copyfiles')
 
 // CONSTANTS
-const ConfigFileName = "tsbconfig.json"
+const ConfigFileName = 'tsbconfig.json'
 
 // HELPERS
 const hasError = (command) => {
@@ -53,8 +54,8 @@ const getReferencFromTSConfig = (tsconfigjson) => {
       const refPath = reference.path
 
       if (!refPath) {
-        console.error("No path found on tsconfig reference.")
-        console.error("tsconfig:")
+        console.error('No path found on tsconfig reference.')
+        console.error('tsconfig:')
         console.error(tsconfigjson)
         shell.exit(1)
       }
@@ -93,13 +94,13 @@ const getReferencesPaths = () => {
 }
 
 const getBaseCommand = () => {
-  let baseCommand = "tsc"
+  let baseCommand = 'tsc'
 
   if (hasError(`${baseCommand} -v`)) {
-    baseCommand = "yarn run tsc"
+    baseCommand = 'yarn run tsc'
 
     if (hasError(`${baseCommand} -v`)) {
-      console.error("Neither tsc nor yarn run tsc are available.")
+      console.error('Neither tsc nor yarn run tsc are available.')
       shell.exit(1)
     }
   }
@@ -122,31 +123,12 @@ const getTSBConfigPaths = () => {
   return configPaths
 }
 
-// EXECUTE
-
-// 1. Find command line base for tsc (yarn run tsc or straight tsc)
-const baseCommand = getBaseCommand()
-
-// 2. Run tsc command with provided args
-const [, , ...args] = process.argv
-const buildCommand = `${baseCommand} ${args.join(" ")}`
-result = shell.exec(buildCommand, { silent: true })
-exitOnError(buildCommand, result, "tsc compilation failed.")
-
-// 3. If --build is not included exit successfully (0)
-if (!args.includes("--build")) {
-  shell.exit(0)
-}
-
-// 4. Get references to copy content
-const tsbConfigPaths = getTSBConfigPaths()
-
-for (const path of tsbConfigPaths) {
+const getCopyFileParams = (tsbConfigPath) => {
   // console.log("config found:", path)
-  const config = fs.readFileSync(path)
+  const config = fs.readFileSync(tsbConfigPath)
 
   if (!config) {
-    console.error(`${path} could not be read.`)
+    console.error(`${tsbConfigPath} could not be read.`)
     shell.exit(1)
   }
 
@@ -155,19 +137,71 @@ for (const path of tsbConfigPaths) {
   try {
     json = JSON.parse(config)
   } catch (error) {
-    console.error(`Error parsing json from ${path}.`)
+    console.error(`Error parsing json from ${tsbConfigPath}.`)
     console.error(error.message)
     shell.exit(1)
   }
 
   for (const key in json) {
-    if (!["copyfiles"].includes(key)) {
-      console.error(`Found unexpected key '${key}' in ${path}.`)
+    if (!['copyfiles'].includes(key)) {
+      console.error(`Found unexpected key '${key}' in ${tsbConfigPath}.`)
       shell.exit(1)
     }
   }
+
+  // Get copyfiles params
+  const copyfiles = json.copyfiles
+
+  if (!Array.isArray(copyfiles)) {
+    console.error(
+      `Key copyfiles is expected to be an array of parameters to pass to copyfiles at ${tsbConfigPath}.`
+    )
+    shell.exit(1)
+  }
+
+  return copyfiles
 }
 
-// 5. Read tsb config for all references and copy based on
+const executeCopyFiles = (copyfilesParams) => {
+  for (const params of copyfilesParams) {
+    const copyCommand = `copyfiles ${params}`
+    const cwd = path.dirname(tsbConfigPath)
 
-// 6. Run copy on current and all reference directories
+    const copyResult = shell.exec(copyCommand, {
+      cwd,
+      silent: true,
+    })
+
+    exitOnError(
+      copyCommand,
+      copyResult,
+      `Error copying files with command '${copyCommand}' at '${cwd}'.`
+    )
+  }
+}
+
+// EXECUTE
+
+// 1. Find command line base for tsc (yarn run tsc or straight tsc)
+const baseCommand = getBaseCommand()
+
+// 2. Run tsc command with provided args
+const [, , ...args] = process.argv
+const buildCommand = `${baseCommand} ${args.join(' ')}`
+result = shell.exec(buildCommand, { silent: true })
+exitOnError(buildCommand, result, 'tsc compilation failed.')
+
+// 3. If --build is not included exit successfully (0)
+if (!args.includes('--build')) {
+  shell.exit(0)
+}
+
+// 4. Get tsb configs to copy content
+const tsbConfigPaths = getTSBConfigPaths()
+
+// 5. Run copy on current and all reference directories
+for (const tsbConfigPath of tsbConfigPaths) {
+  const copyfilesParams = getCopyFileParams(tsbConfigPath)
+
+  executeCopyFiles(copyfilesParams)
+}
