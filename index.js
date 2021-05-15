@@ -2,10 +2,12 @@
 const shell = require('shelljs')
 const path = require('path')
 const fs = require('fs')
-const cp = require('copyfiles')
+const rimraf = require('rimraf')
 
 // CONSTANTS
 const ConfigFileName = 'tsbconfig.json'
+const ValidConfigKeys = ['copyfiles']
+const ValidCopyFilesObjectKeys = ['options', 'files', 'outDirectory']
 
 // HELPERS
 const hasError = (command) => {
@@ -127,7 +129,7 @@ const getTSBConfigPaths = () => {
   return configPaths
 }
 
-const getCopyFileParams = (tsbConfigPath) => {
+const getCopyFileConfigObjects = (tsbConfigPath) => {
   // console.log("config found:", path)
   const config = fs.readFileSync(tsbConfigPath, 'utf8')
 
@@ -147,7 +149,7 @@ const getCopyFileParams = (tsbConfigPath) => {
   }
 
   for (const key in json) {
-    if (!['copyfiles'].includes(key)) {
+    if (!ValidConfigKeys.includes(key)) {
       console.error(`Found unexpected key '${key}' in ${tsbConfigPath}.`)
       shell.exit(1)
     }
@@ -163,12 +165,28 @@ const getCopyFileParams = (tsbConfigPath) => {
     shell.exit(1)
   }
 
+  for (const copyFileItem of copyfiles) {
+    for (const key in copyFileItem)
+      if (!ValidCopyFilesObjectKeys.includes(key)) {
+        console.error(
+          `Found unexpected key '${key}' in one of the copyfiles items ${tsbConfigPath}. Expect only one of ${ValidCopyFilesObjectKeys.join(
+            ', '
+          )}.`
+        )
+        shell.exit(1)
+      }
+  }
+
   return copyfiles
 }
 
-const executeCopyFiles = (copyfilesParams, tsbConfigPath) => {
-  for (const params of copyfilesParams) {
-    const copyCommand = `copyfiles ${params}`
+const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
+  for (const copyFilesConfigObject of copyfilesConfigObjects) {
+    const copyCommand = `copyfiles ${
+      copyFilesConfigObject.options
+    } ${copyFilesConfigObject.files.join(' ')} ${
+      copyFilesConfigObject.outDirectory
+    }`
     const cwd = path.dirname(tsbConfigPath)
 
     const copyResult = shell.exec(copyCommand, {
@@ -181,6 +199,12 @@ const executeCopyFiles = (copyfilesParams, tsbConfigPath) => {
       copyResult,
       `Error copying files with command '${copyCommand}' at '${cwd}'.`
     )
+  }
+}
+
+const executeCleanFiles = (copyfilesConfigObjects) => {
+  for (const copyFilesConfigObject of copyfilesConfigObjects) {
+    rimraf.sync(copyFilesConfigObject.outDirectory)
   }
 }
 
@@ -203,9 +227,13 @@ if (!args.includes('--build')) {
 // 4. Get tsb configs to copy content
 const tsbConfigPaths = getTSBConfigPaths()
 
-// 5. Run copy on current and all reference directories
+// 5. Clean-up copy destination if in --clean mode or copy the defined files
 for (const tsbConfigPath of tsbConfigPaths) {
-  const copyfilesParams = getCopyFileParams(tsbConfigPath)
+  const copyfilesConfigObjects = getCopyFileConfigObjects(tsbConfigPath)
 
-  executeCopyFiles(copyfilesParams, tsbConfigPath)
+  if (args.includes('--clean')) {
+    executeCleanFiles(copyfilesConfigObjects)
+  } else {
+    executeCopyFiles(copyfilesConfigObjects, tsbConfigPath)
+  }
 }
