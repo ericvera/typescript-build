@@ -225,12 +225,14 @@ const getCopyFileConfigObjects = (tsbConfigPath) => {
 }
 
 const getUpAdjustedPath = (filePath, up) => {
-  if (!up) {
+  if (up === undefined) {
     return filePath
   }
 
   let tokens = filePath.split(path.delimiter)
+  log(` --- tokens       : ${tokens.join(', ')}`)
   tokens = tokens.slice(up)
+  log(` --- tokens-sliced: ${tokens.join(', ')}`)
 
   return tokens.join(path.delimiter)
 }
