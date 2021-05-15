@@ -224,6 +224,17 @@ const getCopyFileConfigObjects = (tsbConfigPath) => {
   return copyfiles
 }
 
+const getUpAdjustedPath = (filePath, up) => {
+  if (!up) {
+    return filePath
+  }
+
+  let tokens = filePath.split(path.delimiter)
+  tokens = tokens.slice(up)
+
+  return tokens.join(path.delimiter)
+}
+
 const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
   log(`Executing copy files for config file ${tsbConfigPath}...`)
 
@@ -241,12 +252,13 @@ const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
       })
     }
 
-    const { outDirectory } = copyFilesConfigObject
+    let { outDirectory, up } = copyFilesConfigObject
 
     log(' - files:')
 
     for (const file of files) {
-      const destination = path.join(outDirectory, file)
+      const destinationFile = getUpAdjustedPath(file, up)
+      const destination = path.join(outDirectory, destinationFile)
       log(`   - [from] ${file}`)
       log(`     [to]   ${destination}`)
     }
