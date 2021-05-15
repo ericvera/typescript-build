@@ -241,10 +241,14 @@ const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
       })
     }
 
+    const { outDirectory } = copyFilesConfigObject
+
     log(' - files:')
 
     for (const file of files) {
-      log(`   - ${file}`)
+      const destination = path.join(outDirectory, file)
+      log(`   - [from] ${file}`)
+      log(`     [to]   ${destination}`)
     }
 
     // TODO: Copy files
