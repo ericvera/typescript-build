@@ -115,6 +115,9 @@ const getBaseCommand = () => {
 
 const getTSBConfigPaths = () => {
   const refPaths = getReferencesPaths()
+
+  console.log(`TS reference paths: ${refPaths.join(', ')}`)
+
   const configPaths = []
 
   for (const ref of refPaths) {
