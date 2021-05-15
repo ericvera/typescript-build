@@ -43,7 +43,7 @@ const getTSConfigPath = (args) => {
     }
   }
 
-  const tsConfigPath = path.join(shell.pwd(), projectFile)
+  const tsConfigPath = path.join(shell.pwd().toString(), projectFile)
 
   if (!fs.existsSync(tsConfigPath)) {
     throw new Error(
