@@ -206,6 +206,8 @@ const executeCleanFiles = (copyfilesConfigObjects, tsbConfigPath) => {
     const cleanCommand = `rimraf ${copyFilesConfigObject.outDirectory}`
     const cwd = path.dirname(tsbConfigPath)
 
+    console.log(`Removing files with command '${cleanCommand}' at '${cwd}'...`)
+
     const cleanResult = shell.exec(cleanCommand, {
       cwd,
       silent: true,
