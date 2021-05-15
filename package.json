@@ -1,6 +1,6 @@
 {
   "name": "typescript-build",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "",
   "main": "index.js",
   "author": "",
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "copyfiles": "^2.4.1",
+    "glob": "^7.1.7",
     "rimraf": "^3.0.2",
     "shelljs": "^0.8.4",
     "typescript": "^4.2.4"

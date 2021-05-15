@@ -2,6 +2,7 @@
 const shell = require('shelljs')
 const path = require('path')
 const fs = require('fs')
+const glob = require('glob')
 
 // CONSTANTS
 const Debug = true
@@ -227,24 +228,22 @@ const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
   log(`Executing copy files for config file ${tsbConfigPath}...`)
 
   for (const copyFilesConfigObject of copyfilesConfigObjects) {
-    const copyCommand = getCommand(
-      'copyfiles',
-      `${copyFilesConfigObject.options} ${copyFilesConfigObject.files.join(
-        ' '
-      )} ${copyFilesConfigObject.outDirectory}`
-    )
-    const cwd = path.dirname(tsbConfigPath)
+    const files = new Set()
 
-    const copyResult = shell.exec(copyCommand, {
-      cwd,
-      silent: true,
-    })
+    // Get file list
+    for (const pattern in copyFilesConfigObject.files) {
+      glob.sync(pattern).forEach((file) => {
+        files.add(file)
+      })
+    }
 
-    exitOnError(
-      copyCommand,
-      copyResult,
-      `Error copying files with command '${copyCommand}' at '${cwd}'.`
-    )
+    console.log('files:')
+
+    for (const file of files) {
+      console.log(` - ${file}`)
+    }
+
+    // TODO: Copy files
   }
 }
 
