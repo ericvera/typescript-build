@@ -16,17 +16,21 @@ const ValidCopyFilesObjectKeys = ['options', 'files', 'outDirectory']
 const hasError = (command) => {
   const result = shell.exec(command, { silent: true })
 
-  return !!result.stderr
+  return result.code !== 0 || !!result.stderr
 }
 
 const exitOnError = (command, result, errorMessage) => {
-  if (!!result.stderr) {
+  if (result.code !== 0 || !!result.stderr) {
     console.error(errorMessage)
     console.error(`Error running command: ${command}`)
     console.error()
+    console.error('STDERR:')
     console.error(result.stderr)
+    console.error()
+    console.error('STDOUT:')
+    console.error(result.stdout)
 
-    shell.exit(1)
+    shell.exit(result.code !== 0 ? result.code : 1)
   }
 }
 
