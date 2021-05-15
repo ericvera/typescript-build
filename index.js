@@ -260,10 +260,12 @@ const executeCleanFiles = (copyfilesConfigObjects, tsbConfigPath) => {
 
 // 1. Find command line base for tsc (yarn run tsc or straight tsc)
 const baseCommand = getBaseCommand()
+log(`Using '${baseCommand}' as base command.`)
 
 // 2. Run tsc command with provided args
 const [, , ...args] = process.argv
 const buildCommand = `${baseCommand} ${args.join(' ')}`
+log(`Running tsc using command '${buildCommand}'`)
 const result = shell.exec(buildCommand, { silent: true })
 exitOnError(buildCommand, result, 'tsc compilation failed.')
 
