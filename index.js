@@ -2,7 +2,6 @@
 const shell = require('shelljs')
 const path = require('path')
 const fs = require('fs')
-const rimraf = require('rimraf')
 
 // CONSTANTS
 const ConfigFileName = 'tsbconfig.json'
@@ -202,9 +201,21 @@ const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
   }
 }
 
-const executeCleanFiles = (copyfilesConfigObjects) => {
+const executeCleanFiles = (copyfilesConfigObjects, tsbConfigPath) => {
   for (const copyFilesConfigObject of copyfilesConfigObjects) {
-    rimraf.sync(copyFilesConfigObject.outDirectory)
+    const cleanCommand = `rimraf ${copyFilesConfigObject.outDirectory}`
+    const cwd = path.dirname(tsbConfigPath)
+
+    const cleanResult = shell.exec(cleanCommand, {
+      cwd,
+      silent: true,
+    })
+
+    exitOnError(
+      cleanCommand,
+      cleanResult,
+      `Error removing files with command '${cleanCommand}' at '${cwd}'.`
+    )
   }
 }
 
@@ -232,7 +243,7 @@ for (const tsbConfigPath of tsbConfigPaths) {
   const copyfilesConfigObjects = getCopyFileConfigObjects(tsbConfigPath)
 
   if (args.includes('--clean')) {
-    executeCleanFiles(copyfilesConfigObjects)
+    executeCleanFiles(copyfilesConfigObjects, tsbConfigPath)
   } else {
     executeCopyFiles(copyfilesConfigObjects, tsbConfigPath)
   }
