@@ -229,12 +229,8 @@ const getUpAdjustedPath = (filePath, up) => {
     return filePath
   }
 
-  console.log('path.sep:', path.sep)
-
   let tokens = filePath.split(path.sep)
-  log(` --- tokens       : ${tokens.join(', ')}`)
   tokens = tokens.slice(up)
-  log(` --- tokens-sliced: ${tokens.join(', ')}`)
 
   return tokens.join(path.sep)
 }
