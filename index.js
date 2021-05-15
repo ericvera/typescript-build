@@ -10,7 +10,7 @@ const Debug = true
 const log = Debug ? console.log : () => true
 
 const ConfigFileName = 'tsbconfig.json'
-const ValidConfigKeys = ['copy-files']
+const ValidConfigKeys = ['copyFiles']
 const ValidCopyFilesObjectKeys = ['up', 'files', 'outDirectory']
 
 // HELPERS
@@ -200,7 +200,7 @@ const getCopyFileConfigObjects = (tsbConfigPath) => {
   }
 
   // Get copyfiles params
-  const copyfiles = json.copyfiles
+  const copyfiles = json.copyFiles
 
   if (!Array.isArray(copyfiles)) {
     console.error(
