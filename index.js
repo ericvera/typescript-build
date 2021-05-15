@@ -233,7 +233,7 @@ const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
     const files = new Set()
 
     // Get file list
-    for (const pattern in copyFilesConfigObject.files) {
+    for (const pattern of copyFilesConfigObject.files) {
       log(` - pattern: ${pattern}`)
       log(` - cwd: ${cwd}`)
       glob.sync(pattern, { cwd: tsbConfigPath }).forEach((file) => {
