@@ -144,8 +144,8 @@ const getCommand = (command, args) => {
     return `yarn run ${command} ${args}`
   }
 
-  if (!hasError(`node exec -c '${command} -v'`)) {
-    return `node exec -c '${command} ${args}'`
+  if (!hasError(`npm exec -c '${command} -v'`)) {
+    return `npm exec -c '${command} ${args}'`
   }
 
   if (!hasError(`${command} -v`)) {
@@ -153,7 +153,7 @@ const getCommand = (command, args) => {
   }
 
   console.error(
-    `Neither "yarn run ${command}", "node exec -c '${command}'", nor "${command}" are available.`
+    `Neither "yarn run ${command}", "npm exec -c '${command}'", nor "${command}" are available.`
   )
   shell.exit(1)
 }
