@@ -229,6 +229,8 @@ const getUpAdjustedPath = (filePath, up) => {
     return filePath
   }
 
+  console.log('path.delimiter:', path.delimiter)
+
   let tokens = filePath.split(path.delimiter)
   log(` --- tokens       : ${tokens.join(', ')}`)
   tokens = tokens.slice(up)
