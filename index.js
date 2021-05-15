@@ -227,20 +227,24 @@ const getCopyFileConfigObjects = (tsbConfigPath) => {
 const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
   log(`Executing copy files for config file ${tsbConfigPath}...`)
 
+  const cwd = path.dirname(tsbConfigPath)
+
   for (const copyFilesConfigObject of copyfilesConfigObjects) {
     const files = new Set()
 
     // Get file list
     for (const pattern in copyFilesConfigObject.files) {
+      log(` - pattern: ${pattern}`)
+      log(` - cwd: ${cwd}`)
       glob.sync(pattern, { cwd: tsbConfigPath }).forEach((file) => {
         files.add(file)
       })
     }
 
-    console.log('files:')
+    log(' - files:')
 
     for (const file of files) {
-      console.log(` - ${file}`)
+      log(`   - ${file}`)
     }
 
     // TODO: Copy files
