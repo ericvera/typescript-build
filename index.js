@@ -4,6 +4,10 @@ const path = require('path')
 const fs = require('fs')
 
 // CONSTANTS
+const Debug = true
+
+const log = Debug ? console.log : () => true
+
 const ConfigFileName = 'tsbconfig.json'
 const ValidConfigKeys = ['copyfiles']
 const ValidCopyFilesObjectKeys = ['options', 'files', 'outDirectory']
@@ -26,7 +30,31 @@ const exitOnError = (command, result, errorMessage) => {
   }
 }
 
-const getTSConfigJsonFromPath = (path) => {
+const getTSConfigPath = (args) => {
+  const indexOfProject = args.indexOf('--project')
+
+  let projectFile = 'tsconfig.json'
+
+  if (indexOfProject >= 0) {
+    projectFile = args[indexOfProject + 1]
+
+    if (projectFile === undefined) {
+      throw new Error(`--project specified, but no TSConfig file`)
+    }
+  }
+
+  const tsConfigPath = path.join(shell.pwd(), projectFile)
+
+  if (!fs.existsSync(tsConfigPath)) {
+    throw new Error(
+      `Expected to find ts config at '${tsConfigPath}', but it was not there.`
+    )
+  }
+
+  return tsConfigPath
+}
+
+const getTSConfigJsonFromPath = (baseCommand, path) => {
   let command = `${baseCommand} --showConfig`
 
   if (path) {
@@ -78,22 +106,26 @@ const getReferencesFromTSConfig = (tsconfigJson, tsconfigPath) => {
   return []
 }
 
-const getReferences = (tsconfigPath = undefined, references = new Set()) => {
-  const tsconfigJson = getTSConfigJsonFromPath(tsconfigPath)
+const getReferences = (
+  baseCommand,
+  tsconfigPath,
+  references = new Set([tsConfigPath])
+) => {
+  const tsconfigJson = getTSConfigJsonFromPath(baseCommand, tsconfigPath)
   const newReferences = getReferencesFromTSConfig(tsconfigJson, tsconfigPath)
 
   for (const newRef of newReferences) {
     if (!references.has(newRef)) {
       references.add(newRef)
-      getReferences(newRef, references)
+      getReferences(baseCommand, newRef, references)
     }
   }
 
   return references
 }
 
-const getReferencesPaths = () => {
-  const refs = getReferences()
+const getReferencesPaths = (baseCommand, tsConfigPath) => {
+  const refs = getReferences(baseCommand, tsConfigPath)
 
   return [...refs].map((ref) => path.dirname(ref))
 }
@@ -113,11 +145,7 @@ const getBaseCommand = () => {
   return baseCommand
 }
 
-const getTSBConfigPaths = () => {
-  const refPaths = getReferencesPaths()
-
-  console.log(`TS reference paths: ${refPaths.join(', ')}`)
-
+const getTSBConfigPaths = (refPaths) => {
   const configPaths = []
 
   for (const ref of refPaths) {
@@ -132,7 +160,7 @@ const getTSBConfigPaths = () => {
 }
 
 const getCopyFileConfigObjects = (tsbConfigPath) => {
-  // console.log("config found:", path)
+  // log("config found:", path)
   const config = fs.readFileSync(tsbConfigPath, 'utf8')
 
   if (!config) {
@@ -183,7 +211,7 @@ const getCopyFileConfigObjects = (tsbConfigPath) => {
 }
 
 const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
-  console.log(`Executing copy files for config file ${tsbConfigPath}...`)
+  log(`Executing copy files for config file ${tsbConfigPath}...`)
 
   for (const copyFilesConfigObject of copyfilesConfigObjects) {
     const copyCommand = `copyfiles ${
@@ -207,13 +235,13 @@ const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
 }
 
 const executeCleanFiles = (copyfilesConfigObjects, tsbConfigPath) => {
-  console.log(`Executing clean for config file ${tsbConfigPath}...`)
+  log(`Executing clean for config file ${tsbConfigPath}...`)
 
   for (const copyFilesConfigObject of copyfilesConfigObjects) {
     const cleanCommand = `rimraf ${copyFilesConfigObject.outDirectory}`
     const cwd = path.dirname(tsbConfigPath)
 
-    console.log(`Removing files with command '${cleanCommand}' at '${cwd}'...`)
+    log(`Removing files with command '${cleanCommand}' at '${cwd}'...`)
 
     const cleanResult = shell.exec(cleanCommand, {
       cwd,
@@ -241,19 +269,30 @@ exitOnError(buildCommand, result, 'tsc compilation failed.')
 
 // 3. If --build is not included exit successfully (0)
 if (!args.includes('--build')) {
+  log('Not --build so we are done')
   shell.exit(0)
 }
 
-// 4. Get tsb configs to copy content
-const tsbConfigPaths = getTSBConfigPaths()
+// 4. Get path for current TSConfig
+const tsConfigPath = getTSConfigPath()
+log(`TSConfig path: ${tsConfigPath}`)
 
-console.log(`Found tsbConfigPaths: ${tsbConfigPaths.join(', ')}`)
+// 5. Get config paths for the command and current references
+const refPaths = getReferencesPaths(baseCommand, tsConfigPath)
+log(`Found refPaths: ${refPaths.join(', ')}`)
 
-// 5. Clean-up copy destination if in --clean mode or copy the defined files
+// 6. Get tsb configs to copy content
+const tsbConfigPaths = getTSBConfigPaths(refPaths)
+log(`Found tsbConfigPaths: ${tsbConfigPaths.join(', ')}`)
+
+// 7. Clean-up copy destination if in --clean mode or copy the defined files
+const isCleanCommand = args.includes('--clean')
+log(isCleanCommand ? 'Running clean commands' : 'Running build commands')
+
 for (const tsbConfigPath of tsbConfigPaths) {
   const copyfilesConfigObjects = getCopyFileConfigObjects(tsbConfigPath)
 
-  if (args.includes('--clean')) {
+  if (isCleanCommand) {
     executeCleanFiles(copyfilesConfigObjects, tsbConfigPath)
   } else {
     executeCopyFiles(copyfilesConfigObjects, tsbConfigPath)
