@@ -274,7 +274,7 @@ if (!args.includes('--build')) {
 }
 
 // 4. Get path for current TSConfig
-const tsConfigPath = getTSConfigPath()
+const tsConfigPath = getTSConfigPath(args)
 log(`TSConfig path: ${tsConfigPath}`)
 
 // 5. Get config paths for the command and current references
