@@ -236,7 +236,7 @@ const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
     for (const pattern of copyFilesConfigObject.files) {
       log(` - pattern: ${pattern}`)
       log(` - cwd: ${cwd}`)
-      glob.sync(pattern, { cwd: tsbConfigPath }).forEach((file) => {
+      glob.sync(pattern, { cwd }).forEach((file) => {
         files.add(file)
       })
     }
