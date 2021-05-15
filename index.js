@@ -180,6 +180,8 @@ const getCopyFileConfigObjects = (tsbConfigPath) => {
 }
 
 const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
+  console.log(`Executing copy files for config file ${tsbConfigPath}...`)
+
   for (const copyFilesConfigObject of copyfilesConfigObjects) {
     const copyCommand = `copyfiles ${
       copyFilesConfigObject.options
@@ -202,6 +204,8 @@ const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
 }
 
 const executeCleanFiles = (copyfilesConfigObjects, tsbConfigPath) => {
+  console.log(`Executing clean for config file ${tsbConfigPath}...`)
+
   for (const copyFilesConfigObject of copyfilesConfigObjects) {
     const cleanCommand = `rimraf ${copyFilesConfigObject.outDirectory}`
     const cwd = path.dirname(tsbConfigPath)
@@ -239,6 +243,8 @@ if (!args.includes('--build')) {
 
 // 4. Get tsb configs to copy content
 const tsbConfigPaths = getTSBConfigPaths()
+
+console.log(`Found tsbConfigPaths: ${tsbConfigPaths.join(', ')}`)
 
 // 5. Clean-up copy destination if in --clean mode or copy the defined files
 for (const tsbConfigPath of tsbConfigPaths) {
