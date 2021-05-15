@@ -65,12 +65,14 @@ const getTSConfigPath = (args) => {
   return tsConfigPath
 }
 
-const getTSConfigJsonFromPath = (baseCommand, path) => {
-  let command = `${baseCommand} --showConfig`
+const getTSConfigJsonFromPath = (path) => {
+  let tscArgs = '--showConfig'
 
   if (path) {
-    command += ` --project ${path}`
+    tscArgs += ` --project ${path}`
   }
+
+  const command = getCommand('tsc', tscArgs)
 
   const result = shell.exec(command, { silent: true })
   exitOnError(command, result, `Error getting config at ${path}.`)
@@ -117,43 +119,43 @@ const getReferencesFromTSConfig = (tsconfigJson, tsconfigPath) => {
   return []
 }
 
-const getReferences = (
-  baseCommand,
-  tsconfigPath,
-  references = new Set([tsConfigPath])
-) => {
-  const tsconfigJson = getTSConfigJsonFromPath(baseCommand, tsconfigPath)
+const getReferences = (tsconfigPath, references = new Set([tsConfigPath])) => {
+  const tsconfigJson = getTSConfigJsonFromPath(tsconfigPath)
   const newReferences = getReferencesFromTSConfig(tsconfigJson, tsconfigPath)
 
   for (const newRef of newReferences) {
     if (!references.has(newRef)) {
       references.add(newRef)
-      getReferences(baseCommand, newRef, references)
+      getReferences(newRef, references)
     }
   }
 
   return references
 }
 
-const getReferencesPaths = (baseCommand, tsConfigPath) => {
-  const refs = getReferences(baseCommand, tsConfigPath)
+const getReferencesPaths = (tsConfigPath) => {
+  const refs = getReferences(tsConfigPath)
 
   return [...refs].map((ref) => path.dirname(ref))
 }
 
-const getBaseCommand = () => {
-  let baseCommand = 'tsc'
-
-  if (hasError(`${baseCommand} -v`)) {
-    baseCommand = 'yarn run tsc'
-
-    if (hasError(`${baseCommand} -v`)) {
-      console.error('Neither tsc nor yarn run tsc are available.')
-      shell.exit(1)
-    }
+const getCommand = (command, args) => {
+  if (!hasError(`yarn run ${command} -v`)) {
+    return `yarn run ${command} ${args}`
   }
 
-  return baseCommand
+  if (!hasError(`node exec -c '${command} -v'`)) {
+    return `node exec -c '${command} ${args}'`
+  }
+
+  if (!hasError(`${command} -v`)) {
+    return `${command} ${args}`
+  }
+
+  console.error(
+    `Neither "yarn run ${command}", "node exec -c '${command}'", nor "${command}" are available.`
+  )
+  shell.exit(1)
 }
 
 const getTSBConfigPaths = (refPaths) => {
@@ -225,11 +227,12 @@ const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
   log(`Executing copy files for config file ${tsbConfigPath}...`)
 
   for (const copyFilesConfigObject of copyfilesConfigObjects) {
-    const copyCommand = `copyfiles ${
-      copyFilesConfigObject.options
-    } ${copyFilesConfigObject.files.join(' ')} ${
-      copyFilesConfigObject.outDirectory
-    }`
+    const copyCommand = getCommand(
+      'copyfiles',
+      `${copyFilesConfigObject.options} ${copyFilesConfigObject.files.join(
+        ' '
+      )} ${copyFilesConfigObject.outDirectory}`
+    )
     const cwd = path.dirname(tsbConfigPath)
 
     const copyResult = shell.exec(copyCommand, {
@@ -249,7 +252,10 @@ const executeCleanFiles = (copyfilesConfigObjects, tsbConfigPath) => {
   log(`Executing clean for config file ${tsbConfigPath}...`)
 
   for (const copyFilesConfigObject of copyfilesConfigObjects) {
-    const cleanCommand = `rimraf ${copyFilesConfigObject.outDirectory}`
+    const cleanCommand = getCommand(
+      'rimraf',
+      `${copyFilesConfigObject.outDirectory}`
+    )
     const cwd = path.dirname(tsbConfigPath)
 
     log(`Removing files with command '${cleanCommand}' at '${cwd}'...`)
@@ -269,36 +275,32 @@ const executeCleanFiles = (copyfilesConfigObjects, tsbConfigPath) => {
 
 // EXECUTE
 
-// 1. Find command line base for tsc (yarn run tsc or straight tsc)
-const baseCommand = getBaseCommand()
-log(`Using '${baseCommand}' as base command.`)
-
-// 2. Run tsc command with provided args
+// 1. Run tsc command with provided args
 const [, , ...args] = process.argv
-const buildCommand = `${baseCommand} ${args.join(' ')}`
+const buildCommand = getCommand('tsc', args.join(' '))
 log(`Running tsc using command '${buildCommand}'`)
 const result = shell.exec(buildCommand, { silent: true })
 exitOnError(buildCommand, result, 'tsc compilation failed.')
 
-// 3. If --build is not included exit successfully (0)
+// 2. If --build is not included exit successfully (0)
 if (!args.includes('--build')) {
   log('Not --build so we are done')
   shell.exit(0)
 }
 
-// 4. Get path for current TSConfig
+// 3. Get path for current TSConfig
 const tsConfigPath = getTSConfigPath(args)
 log(`TSConfig path: ${tsConfigPath}`)
 
-// 5. Get config paths for the command and current references
-const refPaths = getReferencesPaths(baseCommand, tsConfigPath)
+// 4. Get config paths for the command and current references
+const refPaths = getReferencesPaths(tsConfigPath)
 log(`Found refPaths: ${refPaths.join(', ')}`)
 
-// 6. Get tsb configs to copy content
+// 5. Get tsb configs to copy content
 const tsbConfigPaths = getTSBConfigPaths(refPaths)
 log(`Found tsbConfigPaths: ${tsbConfigPaths.join(', ')}`)
 
-// 7. Clean-up copy destination if in --clean mode or copy the defined files
+// 6. Clean-up copy destination if in --clean mode or copy the defined files
 const isCleanCommand = args.includes('--clean')
 log(isCleanCommand ? 'Running clean commands' : 'Running build commands')
 
