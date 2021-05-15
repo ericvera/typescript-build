@@ -10,8 +10,8 @@ const Debug = true
 const log = Debug ? console.log : () => true
 
 const ConfigFileName = 'tsbconfig.json'
-const ValidConfigKeys = ['copyfiles']
-const ValidCopyFilesObjectKeys = ['options', 'files', 'outDirectory']
+const ValidConfigKeys = ['copy-files']
+const ValidCopyFilesObjectKeys = ['up', 'files', 'outDirectory']
 
 // HELPERS
 const hasError = (command) => {
@@ -232,7 +232,7 @@ const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
 
     // Get file list
     for (const pattern in copyFilesConfigObject.files) {
-      glob.sync(pattern).forEach((file) => {
+      glob.sync(pattern, { cwd: tsbConfigPath }).forEach((file) => {
         files.add(file)
       })
     }
