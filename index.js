@@ -35,19 +35,26 @@ const exitOnError = (command, result, errorMessage) => {
 }
 
 const getTSConfigPath = (args) => {
-  const indexOfProject = args.indexOf('--project')
+  // Arg that ends in .json
+  const configParams = args.filter(
+    (arg) => !arg.startsWith('--') && arg.endsWith('.json')
+  )
 
   let projectFile = 'tsconfig.json'
 
-  if (indexOfProject >= 0) {
-    projectFile = args[indexOfProject + 1]
-
-    if (projectFile === undefined) {
-      throw new Error(`--project specified, but no TSConfig file`)
-    }
+  if (configParams.lenght > 1) {
+    throw new Error(
+      `typescript-build does not know how to handle more than one config.`
+    )
   }
 
-  const tsConfigPath = path.join(shell.pwd().toString(), projectFile)
+  if (configParams.length === 1) {
+    projectFile = configParams[0]
+  }
+
+  const tsConfigPath = path.isAbsolute(projectFile)
+    ? projectFile
+    : path.join(shell.pwd().toString(), projectFile)
 
   if (!fs.existsSync(tsConfigPath)) {
     throw new Error(
