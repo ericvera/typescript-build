@@ -4,7 +4,7 @@ import shell, { ShellString } from 'shelljs'
 import { fileExists } from './fs'
 import { log } from './log'
 
-enum ExecutionEnvironment {
+export enum ExecutionEnvironment {
   Yarn = 'yarn',
   NPM = 'npm',
   Global = 'global',
@@ -51,12 +51,13 @@ const getCommand = (
 export const shellExecute = (
   executionEnvironment: ExecutionEnvironment,
   command: string
-) => {
+): ShellString => {
   const environmentCommand = getCommand(executionEnvironment, command)
   log(`Executing '${environmentCommand}'`)
   const result = shell.exec(environmentCommand)
-  log(`Exited with code ${result.code}`)
   logAndExitOnError(result, environmentCommand)
+
+  return result
 }
 
 /**
