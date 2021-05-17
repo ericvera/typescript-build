@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import shell from 'shelljs'
+import { executeCleanFiles } from './helpers/clean'
 import { executeCopyFiles } from './helpers/copy'
 import { getExecutionEnvironment, shellExecute } from './helpers/shell'
 import { getTSBConfigPaths } from './helpers/tsbConfig'
@@ -38,8 +39,7 @@ import { log, logList } from './helpers/log'
 
   for (const tsbConfigPath of tsbConfigPaths) {
     if (isCleanCommand) {
-      throw new Error('--clean not implemented yet in tsb :(')
-      //executeCleanFiles(copyfilesConfigObjects, tsbConfigPath)
+      await executeCleanFiles(tsbConfigPath)
     } else {
       await executeCopyFiles(tsbConfigPath)
     }
