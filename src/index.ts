@@ -41,7 +41,7 @@ import { log, logList } from './helpers/log'
       throw new Error('--clean not implemented yet in tsb :(')
       //executeCleanFiles(copyfilesConfigObjects, tsbConfigPath)
     } else {
-      executeCopyFiles(tsbConfigPath)
+      await executeCopyFiles(tsbConfigPath)
     }
   }
 
