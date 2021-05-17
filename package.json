@@ -32,5 +32,9 @@
   "prettier": {
     "semi": false,
     "singleQuote": true
-  }
+  },
+  "keywords": [
+    "typescript",
+    "build"
+  ]
 }
