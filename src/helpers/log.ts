@@ -1,4 +1,4 @@
-const Debug = true
+const Debug = false
 
 export const log = Debug ? console.log : () => true
 
