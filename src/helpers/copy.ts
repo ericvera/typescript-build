@@ -1,14 +1,17 @@
-import { log } from './log'
 import glob from 'glob'
 import path from 'path'
+import { log } from './log'
+import { getCopyFileConfigItems } from './tsbConfig'
+import { getUpAdjustedPath } from './path'
 
-export const executeCopyFiles = (copyfilesConfigObjects, tsbConfigPath) => {
+export const executeCopyFiles = (tsbConfigPath: string): void => {
   log(`Executing copy files for config file ${tsbConfigPath}...`)
 
+  const copyfilesConfigObjects = getCopyFileConfigItems(tsbConfigPath)
   const cwd = path.dirname(tsbConfigPath)
 
   for (const copyFilesConfigObject of copyfilesConfigObjects) {
-    const files = new Set()
+    const files = new Set<string>()
 
     // Get file list
     for (const pattern of copyFilesConfigObject.files) {

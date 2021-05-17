@@ -1,10 +1,9 @@
 import fs from 'fs'
 import path from 'path'
+import { Array, Number, Record, Static, String } from 'runtypes'
 import shell from 'shelljs'
 
 const ConfigFileName = 'tsbconfig.json'
-const ValidConfigKeys = ['copyFiles']
-const ValidCopyFilesObjectKeys = ['up', 'files', 'outDirectory']
 
 export const getTSBConfigPaths = (refPaths: string[]) => {
   const configPaths = []
@@ -20,53 +19,43 @@ export const getTSBConfigPaths = (refPaths: string[]) => {
   return configPaths
 }
 
-export const getCopyFileConfigObjects = (tsbConfigPath: string) => {
-  // log("config found:", path)
-  const config = fs.readFileSync(tsbConfigPath, 'utf8')
+const CopyFilesEntry = Record({
+  files: Array(String),
+  outDirectory: String,
+  up: Number,
+})
 
-  if (!config) {
+const TSBConfig = Record({
+  copyFiles: Array(CopyFilesEntry),
+})
+
+type TSBConfig = Static<typeof TSBConfig>
+
+const loadTSBConfig = (tsbConfigPath: string): TSBConfig => {
+  const json = fs.readFileSync(tsbConfigPath, 'utf8')
+
+  if (!json) {
     console.error(`${tsbConfigPath} could not be read.`)
     shell.exit(1)
   }
 
-  let json
+  let config: TSBConfig
 
   try {
-    json = JSON.parse(config)
+    config = JSON.parse(json)
+
+    TSBConfig.check(config)
   } catch (error) {
     console.error(`Error parsing json from ${tsbConfigPath}.`)
     console.error(error.message)
     shell.exit(1)
   }
 
-  for (const key in json) {
-    if (!ValidConfigKeys.includes(key)) {
-      console.error(`Found unexpected key '${key}' in ${tsbConfigPath}.`)
-      shell.exit(1)
-    }
-  }
+  return config
+}
 
-  // Get copyfiles params
-  const copyfiles = json.copyFiles
+export const getCopyFileConfigItems = (tsbConfigPath: string) => {
+  const config = loadTSBConfig(tsbConfigPath)
 
-  if (!Array.isArray(copyfiles)) {
-    console.error(
-      `Key copyfiles is expected to be an array of parameters to pass to copyfiles at ${tsbConfigPath}.`
-    )
-    shell.exit(1)
-  }
-
-  for (const copyFileItem of copyfiles) {
-    for (const key in copyFileItem)
-      if (!ValidCopyFilesObjectKeys.includes(key)) {
-        console.error(
-          `Found unexpected key '${key}' in one of the copyfiles items ${tsbConfigPath}. Expect only one of ${ValidCopyFilesObjectKeys.join(
-            ', '
-          )}.`
-        )
-        shell.exit(1)
-      }
-  }
-
-  return copyfiles
+  return config.copyFiles
 }
