@@ -28,21 +28,31 @@ export const executeCopyFiles = async (
     }
 
     let { outDirectory, up } = copyFilesConfigObject
+    const copyOperations: { from: string; to: string }[] = []
 
     log(' - files:')
 
     for (const file of files) {
-      const source = path.join(cwd, file)
-      const destination = path.join(
-        cwd,
-        outDirectory,
-        getUpAdjustedPath(file, up)
-      )
-      log(`   - [from] ${source}`)
-      log(`     [to]   ${destination}`)
+      const from = path.join(cwd, file)
+      const to = path.join(cwd, outDirectory, getUpAdjustedPath(file, up))
+      log(`   - [from] ${from}`)
+      log(`     [to]   ${to}`)
 
-      copyPromises.push(fs.copyFile(source, destination))
+      copyOperations.push({ from, to })
     }
+
+    const dirSet = new Set<string>()
+    await copyOperations.forEach(async (copyOperation) => {
+      dirSet.add(path.dirname(copyOperation.to))
+    })
+
+    await dirSet.forEach(async (dir) => {
+      await fs.mkdir(dir, { recursive: true })
+    })
+
+    copyOperations.forEach(({ from, to }) => {
+      copyPromises.push(fs.copyFile(from, to))
+    })
   }
 
   return Promise.all(copyPromises)
