@@ -54,7 +54,9 @@ export const shellExecute = (
 ): ShellString => {
   const environmentCommand = getCommand(executionEnvironment, command)
   log(`Executing '${environmentCommand}'`)
-  const result = shell.exec(environmentCommand)
+  const result = shell.exec(environmentCommand, {
+    silent: true,
+  })
   logAndExitOnError(result, environmentCommand)
 
   return result
