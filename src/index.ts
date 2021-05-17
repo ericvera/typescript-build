@@ -9,7 +9,7 @@ import { getReferencesPaths, getTSConfigPath } from './helpers/tsConfig'
 
   // 1. Run tsc command with provided args
   const [, , ...args] = process.argv
-  shellExecute(executionEnvironment, `tsc ${args.join()}`)
+  shellExecute(executionEnvironment, `tsc ${args.join(' ')}`)
 
   // 2. If --build is not included exit successfully (0)
   if (!args.includes('--build')) {
