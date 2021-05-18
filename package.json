@@ -11,8 +11,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --build",
-    "run": "node ./dist/index.js",
-    "watch": "webpack --watch"
+    "watch": "tsc --build --watch",
+    "run": "node ./dist/index.js"
   },
   "bin": {
     "tsb": "./dist/index.js"
