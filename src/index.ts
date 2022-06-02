@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import shell from 'shelljs'
-import { executeCleanFiles } from './helpers/clean'
-import { executeCopyFiles } from './helpers/copy'
-import { getExecutionEnvironment, shellExecute } from './helpers/shell'
-import { getRootTSBConfigPath, getTSBConfigPaths } from './helpers/tsbConfig'
-import { getReferencesPaths, getTSConfigPath } from './helpers/tsConfig'
-import { log, logList } from './helpers/log'
+import { executeCleanFiles } from './helpers/clean.js'
+import { executeCopyFiles } from './helpers/copy.js'
+import { getExecutionEnvironment, shellExecute } from './helpers/shell.js'
+import { getRootTSBConfigPath, getTSBConfigPaths } from './helpers/tsbConfig.js'
+import { getReferencesPaths, getTSConfigPath } from './helpers/tsConfig.js'
+import { log, logList } from './helpers/log.js'
+  
 ;(async () => {
   const executionEnvironment = await getExecutionEnvironment()
 

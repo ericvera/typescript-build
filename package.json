@@ -1,9 +1,9 @@
 {
   "name": "typescript-build",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "type":"module",
   "description": "tsc with a configurable copy build step.",
-  "author": "Eric Vera ",
+  "author": "Eric Vera",
   "repository": {
     "url": "https://github.com/ericvera/typescript-build.git",
     "type": "git"

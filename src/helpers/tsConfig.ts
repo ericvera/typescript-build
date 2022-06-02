@@ -1,7 +1,7 @@
 import path from 'path'
 import shell from 'shelljs'
-import { fileExists } from './fs'
-import { ExecutionEnvironment, shellExecute } from './shell'
+import { fileExists } from './fs.js'
+import { ExecutionEnvironment, shellExecute } from './shell.js'
 
 interface IncompleteTSConfig {
   references: { path: string }

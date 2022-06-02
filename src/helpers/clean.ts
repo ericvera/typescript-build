@@ -1,7 +1,7 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { getCopyFileConfigItems } from './tsbConfig'
-import { log } from './log'
+import { getCopyFileConfigItems } from './tsbConfig.js'
+import { log } from './log.js'
 
 export const executeCleanFiles = async (
   tsbConfigPath: string

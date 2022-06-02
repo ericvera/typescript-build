@@ -1,8 +1,8 @@
 import path from 'path'
 import shell, { ShellString } from 'shelljs'
-import { fileExists } from './fs'
+import { fileExists } from './fs.js'
 import { findUp } from 'find-up'
-import { log } from './log'
+import { log } from './log.js'
 
 export enum ExecutionEnvironment {
   Yarn = 'yarn',

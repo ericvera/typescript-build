@@ -1,9 +1,9 @@
 import fs from 'fs/promises'
 import glob from 'glob'
 import path from 'path'
-import { log } from './log'
-import { getCopyFileConfigItems } from './tsbConfig'
-import { getUpAdjustedPath } from './path'
+import { log } from './log.js'
+import { getCopyFileConfigItems } from './tsbConfig.js'
+import { getUpAdjustedPath } from './path.js'
 
 export const executeCopyFiles = async (
   tsbConfigPath: string
