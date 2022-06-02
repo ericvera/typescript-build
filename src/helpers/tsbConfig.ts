@@ -20,7 +20,7 @@ export const getTSBConfigPaths = (refPaths: string[]) => {
 }
 
 export const getRootTSBConfigPath = () => {
-  const configPath = path.join(shell.pwd(), ConfigFileName)
+  const configPath = path.join(shell.pwd().toString(), ConfigFileName)
 
     if (fs.existsSync(configPath)) {
       return [configPath]
