@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { Array, Number, Record, Static, String } from 'runtypes'
 import shell from 'shelljs'
+import { Array, Boolean, Number, Optional, Record, Static, String } from 'runtypes'
 
 const ConfigFileName = 'tsbconfig.json'
 
@@ -19,9 +19,20 @@ export const getTSBConfigPaths = (refPaths: string[]) => {
   return configPaths
 }
 
+export const getRootTSBConfigPath = () => {
+  const configPath = path.join(shell.pwd(), ConfigFileName)
+
+    if (fs.existsSync(configPath)) {
+      return [configPath]
+    }
+  
+  return []
+}
+
 const CopyFilesEntry = Record({
   files: Array(String),
-  outDirectory: String,
+  outDirectories: Array(String),
+  skipClean: Optional(Boolean),
   up: Number,
 })
 
@@ -45,9 +56,13 @@ const loadTSBConfig = (tsbConfigPath: string): TSBConfig => {
     config = JSON.parse(json)
 
     TSBConfig.check(config)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(`Error parsing json from ${tsbConfigPath}.`)
-    console.error(error.message)
+    
+    if (error instanceof Error) {
+      console.error(error.message)
+    }
+
     shell.exit(1)
   }
 

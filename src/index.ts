@@ -3,35 +3,51 @@ import shell from 'shelljs'
 import { executeCleanFiles } from './helpers/clean'
 import { executeCopyFiles } from './helpers/copy'
 import { getExecutionEnvironment, shellExecute } from './helpers/shell'
-import { getTSBConfigPaths } from './helpers/tsbConfig'
+import { getRootTSBConfigPath, getTSBConfigPaths } from './helpers/tsbConfig'
 import { getReferencesPaths, getTSConfigPath } from './helpers/tsConfig'
 import { log, logList } from './helpers/log'
 ;(async () => {
   const executionEnvironment = await getExecutionEnvironment()
 
-  // 1. Run tsc command with provided args
   const [, , ...args] = process.argv
-  shellExecute(executionEnvironment, `tsc ${args.join(' ')}`)
 
-  // 2. If --build is not included exit successfully (0)
-  if (!args.includes('--build')) {
-    log('Not --build so tsb are done')
-    shell.exit(0)
+  // 1. Check options
+  const isCopyOnly = !!args.includes('--copyOnly')
+  const isBuild = !!args.includes('--build')
+
+  if (isBuild && isCopyOnly) {
+    log('Only one of --copyOnly or --build is allowed.')
+    shell.exit(1)
   }
 
-  // 3. Get path for current TSConfig
-  const tsConfigPath = await getTSConfigPath(args)
-  log(`TSConfig path: ${tsConfigPath}`)
+  if (!isBuild && !isCopyOnly) {
+    log('One of --copyOnly or --build is required.')
+    shell.exit(1)
+  }
 
-  // 4. Get config paths for the command and current references
-  const refPaths = getReferencesPaths(executionEnvironment, tsConfigPath)
-  log(`Found refPaths:`)
-  logList(refPaths)
+  let tsbConfigPaths
 
-  // 5. Get tsb configs to copy content
-  const tsbConfigPaths = getTSBConfigPaths(refPaths)
-  log('Found tsbConfigPaths:')
-  logList(tsbConfigPaths)
+  // 2. Run tsc command with provided args
+  if (isBuild) {
+    shellExecute(executionEnvironment, `tsc ${args.join(' ')}`)
+  
+
+    // 2a. Get path for current TSConfig
+    const tsConfigPath = await getTSConfigPath(args)
+    log(`TSConfig path: ${tsConfigPath}`)
+
+    // 2b. Get config paths for the command and current references
+    const refPaths = getReferencesPaths(executionEnvironment, tsConfigPath)
+    log(`Found refPaths:`)
+    logList(refPaths)
+
+    // 2c. Get tsb configs to copy content
+     tsbConfigPaths = getTSBConfigPaths(refPaths)
+    log('Found tsbConfigPaths:')
+    logList(tsbConfigPaths)
+  } else {
+    tsbConfigPaths = getRootTSBConfigPath()
+  }
 
   // 6. Clean-up copy destination if in --clean mode or copy the defined files
   const isCleanCommand = args.includes('--clean')

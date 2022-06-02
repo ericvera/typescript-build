@@ -27,18 +27,21 @@ export const executeCopyFiles = async (
       })
     }
 
-    let { outDirectory, up } = copyFilesConfigObject
+    let { outDirectories, up } = copyFilesConfigObject
     const copyOperations: { from: string; to: string }[] = []
 
     log(' - files:')
 
     for (const file of files) {
       const from = path.join(cwd, file)
-      const to = path.join(cwd, outDirectory, getUpAdjustedPath(file, up))
-      log(`   - [from] ${from}`)
-      log(`     [to]   ${to}`)
+      
+      for (const outDirectory of outDirectories) {
+        const to = path.join(cwd, outDirectory, getUpAdjustedPath(file, up))
+        log(`   - [from] ${from}`)
+        log(`     [to]   ${to}`)
 
-      copyOperations.push({ from, to })
+        copyOperations.push({ from, to })
+      }
     }
 
     const dirSet = new Set<string>()

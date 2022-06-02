@@ -1,7 +1,7 @@
-import findUp from 'find-up'
 import path from 'path'
 import shell, { ShellString } from 'shelljs'
 import { fileExists } from './fs'
+import { findUp } from 'find-up'
 import { log } from './log'
 
 export enum ExecutionEnvironment {
