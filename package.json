@@ -1,6 +1,7 @@
 {
   "name": "typescript-build",
-  "version": "2.0.0",
+  "version": "2.0.1",
+  "type":"module",
   "description": "tsc with a configurable copy build step.",
   "author": "Eric Vera ",
   "repository": {
@@ -8,7 +9,10 @@
     "type": "git"
   },
   "license": "MIT",
-  "main": "index.js",
+  "exports": "./index.js",
+  "engines": {
+    "node": ">=14.16"
+  },
   "scripts": {
     "build": "tsc --build",
     "watch": "tsc --build --watch",
