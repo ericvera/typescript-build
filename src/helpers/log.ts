@@ -9,7 +9,7 @@ export const log = (...args: any[]) => {
     return
   }
 
-  console.log(args)
+  console.log(...args)
 }
 
 export const logList = (list: string[]): void => {

@@ -1,6 +1,6 @@
 {
   "name": "typescript-build",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "type": "module",
   "description": "tsc with a configurable copy build step.",
   "author": "Eric Vera",
