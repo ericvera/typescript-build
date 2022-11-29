@@ -5,8 +5,7 @@ import { executeCopyFiles } from './helpers/copy.js'
 import { getExecutionEnvironment, shellExecute } from './helpers/shell.js'
 import { getRootTSBConfigPath, getTSBConfigPaths } from './helpers/tsbConfig.js'
 import { getReferencesPaths, getTSConfigPath } from './helpers/tsConfig.js'
-import { log, logList } from './helpers/log.js'
-  
+import { enableDebugLogging, log, logList } from './helpers/log.js'
 ;(async () => {
   const executionEnvironment = await getExecutionEnvironment()
 
@@ -15,6 +14,18 @@ import { log, logList } from './helpers/log.js'
   // 1. Check options
   const isCopyOnly = !!args.includes('--copyOnly')
   const isBuild = !!args.includes('--build')
+
+  let [firstArg, ...otherArgs] = args
+  let sanitizedArgs = args
+
+  // --debug only allowed if the first
+  if (firstArg === '--debug') {
+    // Set debug to true
+    enableDebugLogging()
+
+    // Remove --debug from args
+    sanitizedArgs = otherArgs
+  }
 
   if (isBuild && isCopyOnly) {
     log('Only one of --copyOnly or --build is allowed.')
@@ -30,11 +41,10 @@ import { log, logList } from './helpers/log.js'
 
   // 2. Run tsc command with provided args
   if (isBuild) {
-    shellExecute(executionEnvironment, `tsc ${args.join(' ')}`)
-  
+    shellExecute(executionEnvironment, `tsc ${sanitizedArgs.join(' ')}`)
 
     // 2a. Get path for current TSConfig
-    const tsConfigPath = await getTSConfigPath(args)
+    const tsConfigPath = await getTSConfigPath(sanitizedArgs)
     log(`TSConfig path: ${tsConfigPath}`)
 
     // 2b. Get config paths for the command and current references
@@ -43,7 +53,7 @@ import { log, logList } from './helpers/log.js'
     logList(refPaths)
 
     // 2c. Get tsb configs to copy content
-     tsbConfigPaths = getTSBConfigPaths(refPaths)
+    tsbConfigPaths = getTSBConfigPaths(refPaths)
     log('Found tsbConfigPaths:')
     logList(tsbConfigPaths)
   } else {
@@ -51,7 +61,7 @@ import { log, logList } from './helpers/log.js'
   }
 
   // 6. Clean-up copy destination if in --clean mode or copy the defined files
-  const isCleanCommand = args.includes('--clean')
+  const isCleanCommand = sanitizedArgs.includes('--clean')
   log(isCleanCommand ? 'Running clean commands' : 'Running build commands')
 
   for (const tsbConfigPath of tsbConfigPaths) {

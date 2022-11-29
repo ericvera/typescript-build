@@ -1,4 +1,8 @@
-const Debug = false
+let Debug = false
+
+export const enableDebugLogging = () => {
+  Debug = true
+}
 
 export const log = Debug ? console.log : () => true
 
