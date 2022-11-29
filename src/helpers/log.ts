@@ -4,7 +4,13 @@ export const enableDebugLogging = () => {
   Debug = true
 }
 
-export const log = Debug ? console.log : () => true
+export const log = (...args: any[]) => {
+  if (!Debug) {
+    return
+  }
+
+  console.log(args)
+}
 
 export const logList = (list: string[]): void => {
   if (!Debug) {
