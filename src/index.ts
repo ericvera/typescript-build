@@ -72,7 +72,10 @@ import path from 'path'
 
       // Codes from https://github.com/microsoft/TypeScript/blob/3fcd1b51a1e6b16d007b368229af03455c7d5794/src/compiler/diagnosticMessages.json
       switch (diagnostic.code) {
+        case 6356:
         case 6357:
+        case 6374:
+        case 6375:
           projects.push(projectPath)
           log('Will build:', projectPath)
           break
