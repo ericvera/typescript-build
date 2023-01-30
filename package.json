@@ -1,6 +1,6 @@
 {
   "name": "typescript-build",
-  "version": "3.0.6",
+  "version": "3.1.0",
   "type": "module",
   "description": "tsc with a configurable copy build step.",
   "author": "Eric Vera",
@@ -16,29 +16,35 @@
   "scripts": {
     "build": "tsc --build",
     "watch": "tsc --build --watch",
-    "run": "node ./dist/index.js"
+    "run": "node ./dist/index.js",
+    "------UP------": "Run after upgrades to yarn or typescript",
+    "up:up": "yarn dlx @yarnpkg/sdks"
   },
   "bin": {
     "tsb": "./dist/index.js"
   },
   "dependencies": {
     "find-up": "^6.3.0",
-    "glob": "^8.0.3",
+    "glob": "^8.1.0",
     "ora": "^6.1.2",
     "runtypes": "^6.6.0",
     "shelljs": "^0.8.5",
-    "typescript": "^4.9.3"
+    "typescript": "^4.9.4"
   },
   "devDependencies": {
-    "@types/node": "^18.11.9",
-    "@types/shelljs": "^0.8.11"
+    "@types/glob": "^8.0.1",
+    "@types/node": "^18.11.18",
+    "@types/shelljs": "^0.8.11",
+    "prettier": "^2.8.3"
   },
   "prettier": {
+    "tabWidth": 2,
     "semi": false,
     "singleQuote": true
   },
   "keywords": [
     "typescript",
     "build"
-  ]
+  ],
+  "packageManager": "yarn@3.3.1"
 }

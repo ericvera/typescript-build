@@ -34,7 +34,7 @@ export const executeCopyFiles = async (
 
     for (const file of files) {
       const from = path.join(cwd, file)
-      
+
       for (const outDirectory of outDirectories) {
         const to = path.join(cwd, outDirectory, getUpAdjustedPath(file, up))
         log(`   - [from] ${from}`)
@@ -45,13 +45,18 @@ export const executeCopyFiles = async (
     }
 
     const dirSet = new Set<string>()
-    await copyOperations.forEach(async (copyOperation) => {
+    copyOperations.forEach((copyOperation) => {
       dirSet.add(path.dirname(copyOperation.to))
     })
 
-    await dirSet.forEach(async (dir) => {
-      await fs.mkdir(dir, { recursive: true })
+    const promises: Promise<string | undefined>[] = []
+
+    dirSet.forEach((dir) => {
+      promises.push(fs.mkdir(dir, { recursive: true }))
     })
+
+    // Wait for directories to be created first
+    await Promise.all(promises)
 
     copyOperations.forEach(({ from, to }) => {
       copyPromises.push(fs.copyFile(from, to))
